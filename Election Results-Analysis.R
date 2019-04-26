@@ -1,17 +1,27 @@
 ######Election Result analaysis - 2017 UP State #######
-######Saurabh Mudgal  Date 20th APR ###############################
+
 ##read the input file Detailed result from eci.gov.in##########
 
 setwd("C:\\BACP\\Module 5 - Predictive Modelling\\Mini Projet - Election Result Analysis")
 getwd()
 
 Detail_Result = read.csv(file.choose(), header=T)
+Perform_party = read.csv(file.choose(), header=T)
+
+
 View(Detail_Result)
+View(Perform_party)
 dim(Detail_Result)
 str(Detail_Result)
 names(Detail_Result)
 str(Detail_Result)
 summary(Detail_Result)
+
+
+library("dplyr")
+install.packages("ggplot2")
+library("ggplot2")
+
 
 # add new variable for winner in each constituency 
 
@@ -40,9 +50,8 @@ plot(Detail_Result$Party.Name)
 summary(Detail_Result$Total.Valid.Votes)
 sd(Detail_Result$Total.valid.votes.polled..NOTA)
 
-library("dplyr")
-install.packages("ggplot2")
-library("ggplot2")
+
+#devtools::install_github("hadley/dplyr") ## as dplyr was not working (took it from github)
 
 
 ### check for the missing date 
@@ -51,8 +60,12 @@ sum(is.na(Detail_Result$Constituency.No.))
 sum(is.na(Detail_Result$Constituency.Name))
 sum(is.na(Detail_Result$Candidate.Name))
 sum(is.na(Detail_Result$Candidate.Sex))
+sum(is.na(Detail_Result$Candidate.Age)) ## 403 Na 
 
 
+
+
+sum(is.na(Detail_Result))
 
 
 #Detail_Result$Winner =  filter(Constituency.Name=="Ghaziabad") 
@@ -72,17 +85,16 @@ plot(Detail_Result %>%
   filter(Party.Name == "BJP" | Party.Name =="BSP" | Party.Name =="SP")
 )
 
-###creating data frame for top 5 political parties 
+###creating data frame for top 4 political parties 
 
-df_imp_parties = Detail_Result %>%
-                select(Detail_Result$Constituency.Name,Detail_Result$Candidate.Sex,
-                        Detail_Result$Candidate.Age, Detail_Result$Candidate.Category,
-                        Detail_Result$Party.Name, Detail_Result$Total.Valid.Votes,
-                        Detail_Result$X..votes.polled,Detail_Result$Winner) %>%
-                  filter (Detail_Result$Party.Name=="BJP" | Detail_Result$Party.Name=="SP"
-                          | Detail_Result$Party.Name=="BSP" | Detail_Result$Party.Name=="INC")
+df_imp_parties = select(Detail_Result,
+                        Constituency.Name,Candidate.Sex,
+                        Candidate.Age,Candidate.Category,Party.Name, Total.Valid.Votes,
+                        X..votes.polled,Winner) %>%
+                        filter (Party.Name=="BJP" | Party.Name=="SP"
+                          | Party.Name=="BSP" | Party.Name=="INC")
 
-
+View(df_imp_parties)
 
 View(Detail_Result)
 
@@ -97,6 +109,8 @@ Detail_Result_const = Detail_Result %>%
                       select ()
                       group_by(Constituency.No.)  %>%
                       summarise(consti_n = distinct_(Party.Name) )
+                      
+                      
 Detail_Result %>%
           group_by(Candidate.Category) 
 
@@ -106,7 +120,9 @@ Detail_Result %>%
  ggplot(Detail_Result,aes(x=Party.Name, fill=Total.Valid.Votes)) +
     geom_bar() + labs(y='Votes', title = 'Vote per party')
 
-
+ ggplot(df_imp_parties,aes(x=Party.Name, fill=Total.Valid.Votes)) +
+   geom_bar() + labs(y='Votes', title = 'Vote per party')
+ 
 
 plot(Constituency.Name~Candidate.Sex,Detail_Result)
 
@@ -160,4 +176,54 @@ party_votes =Detail_Result %>%
   
   ggplot(Detail_Result,aes(x=Party.Name, fill= Detail_Result$Candidate.Sex )) +
     geom_bar() + labs(y='votes', title = 'party')
+  
+  
+  ##########using data set performance of parties##############3
+  
+  names(Perform_party)
+  head(Perform_party)
+  summary(Perform_party$Party.Type)
+  View(Perform_party)
+  
+  
+  ##type of parties forfitted 
+  forfitted_par = Perform_party %>%
+    group_by(Party.Name) %>%
+      summarise(Forfitted) %>% top_n(10)
+  
+  forfitted_par[order(-forfitted_par$Forfitted),]
+  
+  ##top 10 parties contested 
+  contested_par = Perform_party %>%
+    group_by(Party.Name) %>%
+    summarise(Contested) %>% top_n(10)
+  
+  contested_par[order(-contested_par$Contested),]
+  
+  ##winning rate 
+  
+  select(Perform_party,Party.Name,Contested,won)
+    
+    Perform_party=Perform_party %>% mutate(winRatio = Won/Contested) 
+    
+    WinR =Perform_party %>%
+      group_by(Party.Name) %>%
+      summarise(winRatio) %>% top_n(10)
+  
+    WinR
+    
+    WinR[order(-WinR$winRatio),]
+    
+  
+    
+    Perform_party=Perform_party %>% mutate(forfittedRatio = Forfitted/Contested*100)
+  
+  forfittedR = Perform_party %>%
+    group_by(Party.Name) %>%
+    summarise(forfittedRatio) 
+  
+ forfittedR %>% arrange(forfittedRatio)
+  
+  forfittedR[order(forfittedR$forfittedRatio) ,]
+  
   
