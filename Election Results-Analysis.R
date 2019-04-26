@@ -1,5 +1,5 @@
 ######Election Result analaysis - 2017 UP State #######
-
+######Saurabh Mudgal  Date 20th APR ###############################
 ##read the input file Detailed result from eci.gov.in##########
 
 setwd("C:\\BACP\\Module 5 - Predictive Modelling\\Mini Projet - Election Result Analysis")
